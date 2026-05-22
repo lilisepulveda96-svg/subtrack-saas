@@ -1,2 +1,5 @@
 node_modules/
+
+# Local environments
 .env
+.env.local

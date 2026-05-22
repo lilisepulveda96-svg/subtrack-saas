@@ -1,68 +1,92 @@
-let users = [
-  { id: 1, name: "Luis" },
-  { id: 2, name: "Lili" },
-];
-let nextId = 2;
+const { supabase } = require("../supabaseClient");
 
-const getAllUsers = (req, res) => {
-  res.setHeader("Content-Range", `users 0-${users.length - 1}/${users.length}`);
-  res.status(200).json(users);
-};
+const getAllUsers = async (req, res) => {
+  const { data, error, count } = await supabase
+    .from("users")
+    .select("*", { count: "exact" });
 
-const createUser = (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ err: "name is required" });
-  }
-  nextId++;
-  const id = nextId;
-
-  const newUser = { id, name };
-  users.push(newUser);
-
-  return res.status(201).json(newUser);
-};
-
-const getUserById = (req, res) => {
-  const { id } = req.params;
-
-  const userId = users.find((u) => u.id === parseInt(id));
-  if (!userId) {
-    return res.status(404).json({ err: "User not found" });
+  if (error) {
+    return res.status(500).json({ error: error.message });
   }
 
-  return res.json(userId);
+  const safeData = data || [];
+
+  res.setHeader(
+    "Content-Range",
+    `users 0-${safeData.length - 1}/${count || 0}`,
+  );
+
+  return res.json(safeData);
 };
 
-const updateUser = (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
+const createUser = async (req, res) => {
+  const { name, email } = req.body;
 
   if (!name) {
     return res.status(400).json({ err: "name is required" });
   }
 
-  const userId = users.find((u) => u.id === parseInt(id));
-  if (!userId) {
-    return res.status(404).json({ err: "User not found" });
+  const { data, error } = await supabase
+    .from("users")
+    .insert([{ name, email }])
+    .select()
+    .single();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
   }
 
-  userId.name = name;
-
-  return res.json(userId);
+  return res.status(201).json(data);
 };
 
-const deleteUser = (req, res) => {
+const getUserById = async (req, res) => {
   const { id } = req.params;
 
-  const userId = users.findIndex((u) => u.id === parseInt(id));
-  if (userId === -1) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
     return res.status(404).json({ err: "User not found" });
   }
 
-  const deletedUser = users.splice(userId, 1)[0];
+  return res.json(data);
+};
+const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
 
-  return res.status(200).json(deletedUser);
+  const { data, error } = await supabase
+    .from("users")
+    .update({ name })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.json(data);
+};
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  const { data, error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.json(data);
 };
 
 module.exports = {
