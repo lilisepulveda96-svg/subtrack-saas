@@ -43,7 +43,7 @@ Data Provider (API Adapter)
         ↓
 Express.js (Backend API)
         ↓
-In-memory data (users)
+Supabase (PostgreSQL Database)
 
 ```
 
@@ -70,3 +70,14 @@ In-memory data (users)
 ```bash
 git clone https://github.com/lilisepulveda96-svg/subtrack-saas.git
 ```
+
+### 2. Environment Variables
+
+Create a `.env` file in the backend directory with your Supabase credentials:
+
+\`\`\`env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+\`\`\`
+
+_(Note: Never commit your actual `.env` file to version control)._
